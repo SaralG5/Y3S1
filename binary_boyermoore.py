@@ -69,7 +69,7 @@ def z_algorithm(input_str):
                 elif z_list[k - l] > r - k + 1:  # Case 2b from tute. Zk - l > r - k.
                     # this case is like when a previous z_box is already bigger your current z_box
                     # then you will already know that the number of matches is r - k.
-                    z_list[k] = r - k
+                    z_list[k] = r - k + 1
                     # nothing happens with l and r so they remain unchanged.
                     r_list += [r_list[-1]]
                     l_list += [l_list[-1]]
@@ -94,6 +94,7 @@ def z_algorithm(input_str):
         r_list = [1]
 
     return z_list
+
 def reverse_string(string):
     result = ''
     n = len(string)
@@ -164,11 +165,25 @@ def biggest_smaller(a_list, a_value):
             return middle, a_value
 
 
+def list_reverse(a_list):
+    final_list = []
+    n = len(a_list)
+    for k in range(n -1, -1, -1):
+        final_list.append(a_list[k])
+    return final_list
+
+def except_last(a_list):
+    final_list = []
+    n = len(a_list)
+    for k in range(n - 1):
+        final_list.append(a_list[k])
+    return final_list
+
+
 def z_suffix(a_string):
     # This function returns the z_suffix values for a string
     # all we got to do is compute the z_values for the string reversed.
-    backward = reverse_string(a_string)
-    return z_algorithm(backward)
+    return except_last(list_reverse(z_algorithm(reverse_string(a_string))))
 
 
 def good_suffix(a_string):
@@ -179,12 +194,49 @@ def good_suffix(a_string):
     for j in range(m + 1):
         good_suff.append(0)
 
-    for p in range(1, m):
+    for p in range(m - 1):
         j = m - z_suff[p]
-        good_suff[j] = p
+        good_suff[j] = p + 1
     return good_suff
 
-print(good_suffix('abacababaca'))
+
+def matched_prefix(a_string):
+    str_size = len(a_string)
+    matched_prefix_list = []
+    for k in range(str_size + 1):
+        matched_prefix_list.append(0)
+    start = 0
+    end = str_size - 1
+    while end != 0:
+        counter = 0
+        matches = 0
+        while end + counter < str_size and a_string[end + counter] == a_string[start + counter]:
+            matches += 1
+            counter += 1
+        matched_prefix_list[end] = matches   # set index to be the number of matches
+        if matched_prefix_list[end] < matched_prefix_list[end + 1]:
+            # if the number of matches is less than previous iteration
+            # set number of matches to the bigger one
+            matched_prefix_list[end] = matched_prefix_list[end + 1]
+        end -= 1
+    # set first index to be the length of the string
+    matched_prefix_list[0] = str_size
+    return matched_prefix_list
+
+
+
+def good_suffix_shift(pat, k):
+    good_suff = good_suffix(pat)
+    matched_pre = matched_prefix(pat)
+    shift = 0
+    pat_length = len(pat)
+    if good_suff[k + 1] > 0:
+        shift = pat_length - good_suff[k + 1]
+    else:
+        shift = pat_length - matched_pre[k + 1]
+    return shift
+
+
 
 
 def boyer_moore(txt, pat):
@@ -200,10 +252,15 @@ def boyer_moore(txt, pat):
     bad_char_array = bad_char_processing(pat)[0]  # the rightmost positions
     already_there = bad_char_processing(pat)[1]  # this contains the ascii values of the letters in pattern
     # we can use already_there to see if a txt letter we are matching is even in the string
+    # Now also preprocess the string for the good suffix stuff
+    matched_pre = matched_prefix(pat)
+    #good_suff = good_suffix(pat)
     while pat_length + comp_counter <= txt_length:  # start outer loop and begin comparisons
         loop_counter = 1 # this checks if the for loop runs in its entirety.
         for k in range(pat_length - 1, -1, -1):  # check from left to right for matching characters
             if pat[k] != txt[k + comp_counter]:  # in this case the characters do not match
+                # good suffix:
+                good_shift = good_suffix_shift(pat, k)
                 # now we have to find the rightmost occurrence of the mismatched character in text, within pattern
                 # if we cannot find it then default the shift to 1
                 # first find ascii value of the mismatched character
@@ -219,23 +276,26 @@ def boyer_moore(txt, pat):
                     # so now we got the right most occurrence of the mismatched character yee yee.
                     # Now we will assign a variable to the amount we got to shift by
                     shift_maybe = k - right_most
-                    # the actual shift will be the maximum of this value and 1. Thus:
-                    actual_shift = max(1, shift_maybe)
+                    # the actual shift will be the maximum of this value and good_shift. Thus:
+                    actual_shift = max(good_shift, shift_maybe)
                     comp_counter += actual_shift  # shift the pattern forward.
                     break  # now break out of the for loop no more comparison needed.
 
                 else:  # here the mismatched character ain't even in text man.
-                    actual_shift = 1  # so we just shift 1 ahead.
+                    actual_shift = max(good_shift, shift_maybe)  # so we just shift by max of the two.
                     comp_counter += actual_shift
 
             else:  # in this case the characters actually match so all good
                 if loop_counter == pat_length:  # if the whole pattern matched
-                    # then we can shift the pattern forward by pat_length
+                    # then we can shift the pattern forward by matched_prefix[1]
                     result += [k + comp_counter]  # put the index where full match ends into the result list
-                    comp_counter += pat_length # maybe have to get rid of this.
+                    # shift the pattern forward by pat_length - matched_prefix[1]
+                    comp_counter += pat_length - matched_pre[1]
                 else:  # otherwise keep checking
+
                     loop_counter += 1
     return result
 
 print(boyer_moore('0011010101111001001101100', '010'))
+print(boyer_moore('abcasjudnsauiabcjaja','abc'))
 
