@@ -243,6 +243,7 @@ def boyer_moore(txt, pat):
     result = []
     # okay so we will first do the part for the bad character rule in the code.
     comp_counter = 0  # assign variable that will help to compare to all of txt. Stands for comparison counter
+    total_counter = 0 # variable for total number of comparisons made by algorithm
     total_comparisons = 0  # assign a variable to count the total number of comparisons
     # assign two values to be the lengths of the txt and the pattern
     txt_length = len(txt)
@@ -254,10 +255,10 @@ def boyer_moore(txt, pat):
     # we can use already_there to see if a txt letter we are matching is even in the string
     # Now also preprocess the string for the good suffix stuff
     matched_pre = matched_prefix(pat)
-    #good_suff = good_suffix(pat)
     while pat_length + comp_counter <= txt_length:  # start outer loop and begin comparisons
         loop_counter = 1 # this checks if the for loop runs in its entirety.
         for k in range(pat_length - 1, -1, -1):  # check from left to right for matching characters
+            total_counter += 1  # increment the total count since a comparison is about to be made.
             if pat[k] != txt[k + comp_counter]:  # in this case the characters do not match
                 # good suffix:
                 good_shift = good_suffix_shift(pat, k)
@@ -294,8 +295,12 @@ def boyer_moore(txt, pat):
                 else:  # otherwise keep checking
 
                     loop_counter += 1
-    return result
+    return result, total_counter
 
-print(boyer_moore('0011010101111001001101100', '010'))
-print(boyer_moore('abcasjudnsauiabcjaja','abc'))
 
+def get_text(a_file):
+    with open(a_file, 'r') as file:
+        content = file.readlines()
+    return content[0]
+
+print(boyer_moore('01010101010', '01'))
