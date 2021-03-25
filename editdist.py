@@ -1,6 +1,21 @@
-# first code z algorithm
+"""
+Saral 30618428: Edit Distance
+Here I wanted to explain the main idea behind how I am actually calculating the edit distances, since it may not be clear
+from the code. To find the edit distance I concatenated the pattern and the string together and ran the z_algorithm on
+it. This would at least give a direct matches if there are some. To find if something needed to be deleted/substituted/
+replaced I also ran the z_algorithm on the concatenation of reverse(pat) and reverse(txt) since this could also tell
+me if there are any more parts that match the pattern so long as I check the relevant indexes of this string.
+"""
 
 def z_algorithm(input_str):
+    """
+    This function runs the z algorithm on a given string. It simply goes through all the cases that can occur, keeping
+    track of the z boxes as it iterates through the input string.
+    @complexity_space: O(n) where n is the length of input_str.
+    @complexity_time: O(n) where n is the length of input_str.
+    :param input_str: a string
+    :return: an array that gives the z_values for each character in input_str. The first index is the string length.
+    """
     # first initialise z list and l and r list
     str_size = len(input_str)
     if str_size > 1: # if its bigger than one then we will do all the z_stuff
@@ -93,39 +108,36 @@ def z_algorithm(input_str):
         r_list = [1]
 
     return z_list
-
-
 def dist_finder(txt, pat):
     pos_in_text = []
-    # First lets deal with insertion
     norm_concat = pat + txt  # concatenate the two together
+    # assign three values for important lengths
     str_length = len(norm_concat)
     txt_length = len(txt)
     pat_length = len(pat)
-
-    reverse_concat = reverse_string(pat) + reverse_string(txt)    #
-
+    reverse_concat = reverse_string(pat) + reverse_string(txt) # reverse pat and txt and then concatenate them together
     # now run z_algorithm on both the norm_concat and reverse_concat
     norm_z = z_algorithm(norm_concat)
     reverse_z = z_algorithm(reverse_concat)
 
-    for i in range(pat_length, str_length):
+    for i in range(pat_length, str_length): # iterate through z values.
         if norm_z[i] >= 1:
-            #if reverse_z[txt_length - 1 + pat_length - norm_z[i]] + norm_z[i] == pat_length:
+            # check reverse_z list for any z_value at corresponding letter
             if reverse_z[txt_length - i + pat_length] + norm_z[i] >= pat_length:  # direct match
                 pos_in_text.append([i-pat_length, 0])
-            # check reverse_z list for any z_value at corresponding letter
             elif reverse_z[txt_length - i + pat_length + 1] + norm_z[i] == pat_length - 1:  # insertion
                 pos_in_text.append([i-pat_length, 1])
             elif reverse_z[txt_length - i + pat_length] + norm_z[i] == pat_length - 1: # deletion/substitution
-                # elif reverse_z[txt_length - 1 + pat_length - norm_z[i]] + norm_z[i] == pat_length - 1:
                 pos_in_text.append([i - pat_length, 1])
 
     return pos_in_text
-
-
-
 def reverse_string(string):
+    """
+    This function returns a string in reverse order.
+    @complexity_space and time: O(n) where n is the length of string.
+    :param string: a string.
+    :return: the string reversed.
+    """
     result = ''
     n = len(string)
     for k in range(n - 1, -1 , -1):
@@ -135,11 +147,11 @@ def reverse_string(string):
 
 #print(reverse_string('abcd'))
 #print(dist_finder('zxycade', 'cab'))
-print(dist_finder('abdyabxdcyabcdz', 'abcd'))
+#print(dist_finder('abdyabxdcyabcdz', 'abcd'))
 #print(dist_finder('aecde', 'abcd'))
 #print(dist_finder('zxycade','cab'))
 #print(z_algorithm('aaba'))
 #print(dist_finder('abc', 'axcd'))
-
+#print(dist_finder('agcdefghi', 'ab'))
 
 

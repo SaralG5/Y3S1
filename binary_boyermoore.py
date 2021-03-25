@@ -1,7 +1,26 @@
-# first start off making the rightmost to the left of each position table
-# Get the z_algorithm from part one, along with reverse string functions.
+"""
+Saral 30618428: Binary Boyer Moore
+Here I just want to give a quick overview of what the code is actually doing. The main idea is pretty much exactly what
+was given in the lectures. Just right to left comparison and shift if we mismatch. The shift will depend on the larger
+of the good suffix and bad character rules. To make the bad suffix array, instead of using an n x n table like thing
+shown in the lectures, I still used an array but without all the unnecessary 0's. If I ever needed to find the rightmost
+occurrence of the mismatched letter,  I binary searched the bad character array for the largest number smaller than
+where I am currently comparing. To implement the good suffix rule I used the pseudo code shown in the lectures.
+The matched prefix values were also calculated with some comparisons as well comparing prefixes to suffixes. The
+indexes for most the array based stuff will look a little different to the lectures since I zero indexed everything, but
+not to worry- though they look dodgy everything should hopefully line up well. In each function I will go more into depth
+with what it is actually doing and hopefully show the whole picture of how the algorithm works.
+"""
 
 def z_algorithm(input_str):
+    """
+    This function runs the z algorithm on a given string. It simply goes through all the cases that can occur, keeping
+    track of the z boxes as it iterates through the input string.
+    @complexity_space: O(n) where n is the length of input_str.
+    @complexity_time: O(n) where n is the length of input_str.
+    :param input_str: a string
+    :return: an array that gives the z_values for each character in input_str. The first index is the string length.
+    """
     # first initialise z list and l and r list
     str_size = len(input_str)
     if str_size > 1: # if its bigger than one then we will do all the z_stuff
@@ -94,32 +113,44 @@ def z_algorithm(input_str):
         r_list = [1]
 
     return z_list
-
 def reverse_string(string):
+    """
+    This function returns a string in reverse order.
+    @complexity_space and time: O(n) where n is the length of string.
+    :param string: a string.
+    :return: the string reversed.
+    """
     result = ''
     n = len(string)
     for k in range(n - 1, -1 , -1):
         result += string[k]
     return result
-
-
-
 def bad_char_processing(a_string):
-    # In this function we just want to make the extended bad character array,
-    bad_array = []
-    str_size = len(a_string)
-    ascii_values = [None for j in range(256)]
-    for i in range(str_size):
-        asc_value = ord(a_string[i])
-        if i == 0:
-            # here we start to build the bad array
+    """
+    @complexity_time: O(n) where n is the length of a_string
+    @complexity_space: O(n) where n is length of a_string
+    :param a_string: a string
+    :return: the bad character array for the string. Index n of the bad character array will contain the occurrences of
+    character n in a_string. So for example if a_string = 'abcahgaia', then the function would output [0, 3, 6, 8] at
+    index 0.
+    Extra information: In this function I created an array called 'ascii_values' that is used to check whether a
+    character has already been seen in a string. All it does is creates, at the index of the character's ascii value,
+    a tuple containing the index of the character in a_string and the character itself. This position is checked
+    whenever a character is being checked for its rightmost occurrences.
+    """
+    bad_array = []   # array that will contain output
+    str_size = len(a_string)   # length of a_string
+    ascii_values = [None for j in range(256)]   # here create a list 256 long that can use ascii values when inserting
+    # values into it
+    for i in range(str_size):  # loop through string checking each character.
+        asc_value = ord(a_string[i])  # find ascii value of character being checked.
+        if i == 0:  # nothing yet so just insert first character into bad_array
             bad_array += [[0]]
             ascii_values[asc_value] = (i, a_string[i])
 
-        elif ascii_values[asc_value] != None:
+        elif ascii_values[asc_value] != None:   # if some character has already been seen
             most_recent = ascii_values[asc_value]
-            # this means this string is already in bad_array
-            # now just add the new index to the list, since we now where the character is
+            # now just add the new index to the list, since we know where the character is.
             bad_array[most_recent[0]] += [i]
 
         else:  # here the character has not been seen yet
@@ -128,10 +159,16 @@ def bad_char_processing(a_string):
             ascii_values[asc_value] = (i, a_string[i])
 
     return (bad_array, ascii_values)
-
-
-
 def biggest_smaller(a_list, a_value):
+    """
+    @complexity_space: O(n) where n is the length of a_list
+    @complexity_time: O(logn) where n is the length of a_list, since we search half the list after each numeric comparison.
+    :param a_list: a list containing numbers.
+    :param a_value: a given integer value
+    :return: the index of the biggest number that is smaller than a_value, and the number itself
+    Extra Information: This function is pretty much just a modified binary search. It will help us in Boyer Moore since
+    it can help to find the rightmost occurrence of a mismatched letter from some index, k.
+    """
     left = 0
     right = len(a_list) - 1
     if right == left:  # this means our list only has one element
@@ -163,30 +200,55 @@ def biggest_smaller(a_list, a_value):
             # this is the final case where we find the element
             # output the value and index
             return middle, a_value
-
-
 def list_reverse(a_list):
+    """
+    This function simply returns the elements of a list in reverse order.
+    @complexity_time and space: O(n) where n is the length of a_list
+    :param a_list: a given list
+    :return: the list reversed
+    """
     final_list = []
     n = len(a_list)
     for k in range(n -1, -1, -1):
         final_list.append(a_list[k])
     return final_list
-
 def except_last(a_list):
+    """
+    @complexity_time and space: O(n) where n is the length of a_list.
+    :param a_list: a given list
+    :return: a_list but the last element removed
+    """
     final_list = []
     n = len(a_list)
     for k in range(n - 1):
         final_list.append(a_list[k])
     return final_list
-
-
 def z_suffix(a_string):
+    """
+    This function gives the Z suffix values of a string by pretty much as stated in the lectures; running the z_algorithm
+    on reverse(a_string). The functions list_reverse and except_last, though they seem useless, just help for format final
+    outputted array, since I was finding that things werent lining up the way they should have.
+
+    @complexity_space: O(n) where n is length of a_string
+    @complexity_time: O(n) where n is the length of a_string. This is because its complexity is dominated by the
+    z_algorithm which in itself is O(n). The other two functions list_reverse, z_algorithm and reverse_string are just
+    a couple more O(n) operations.
+
+    :param a_string: some string
+    :return: Z suffix values
+
+    """
     # This function returns the z_suffix values for a string
     # all we got to do is compute the z_values for the string reversed.
     return except_last(list_reverse(z_algorithm(reverse_string(a_string))))
-
-
 def good_suffix(a_string):
+    """
+    This function outputs the good_suffix values for a_string. It pretty much directly implements what was shown in
+    lectures just with different indexing.
+    @complexity_space and time: O(n) where n is the length of a_string. Just two for loops is all.
+    :param a_string: a string
+    :return: an array corresponding to the good suffix values of a_string.
+    """
     good_suff = []
     z_suff = z_suffix(a_string)
     # use function given in lectures
@@ -198,9 +260,14 @@ def good_suffix(a_string):
         j = m - z_suff[p]
         good_suff[j] = p + 1
     return good_suff
-
-
 def matched_prefix(a_string):
+    """
+    This function finds the matched prefix values of a_string. It contains two nested for loops and a bit of right to
+    left comparison with some pointers.
+    @complexity_space and time: O(n) where n is the length of a_string.
+    :param a_string: a string
+    :return: an array corresponding to the matched prefix values for a_string.
+    """
     str_size = len(a_string)
     matched_prefix_list = []
     for k in range(str_size + 1):
@@ -222,10 +289,14 @@ def matched_prefix(a_string):
     # set first index to be the length of the string
     matched_prefix_list[0] = str_size
     return matched_prefix_list
-
-
-
 def good_suffix_shift(pat, k):
+    """
+    This function goes through the two cases of good suffix shifting where good_suff[k + 1] > 0 or good_suff[k + 1] = 0.
+    Based on the case it outputs what the shift should be.
+    :param pat: a string which is the pattern being used for matching
+    :param k: an integer value
+    :return: by how many indexes the good_suffix algorithm would suggest shifting.
+    """
     good_suff = good_suffix(pat)
     matched_pre = matched_prefix(pat)
     shift = 0
@@ -235,11 +306,13 @@ def good_suffix_shift(pat, k):
     else:
         shift = pat_length - matched_pre[k + 1]
     return shift
-
-
-
-
 def boyer_moore(txt, pat):
+    """
+    This function actually implements the Boyer Moore algorithm.
+    :param txt: a string
+    :param pat: another string
+    :return: the total number of comparisons made by the algorithm and an array containing the indexes of the matches.
+    """
     result = []
     # okay so we will first do the part for the bad character rule in the code.
     comp_counter = 0  # assign variable that will help to compare to all of txt. Stands for comparison counter
@@ -276,25 +349,24 @@ def boyer_moore(txt, pat):
                     right_most = biggest_smaller(bad_char_array[index_in_pat], k)
                     # so now we got the right most occurrence of the mismatched character yee yee.
                     # Now we will assign a variable to the amount we got to shift by
-                    shift_maybe = k - right_most
+                    bad_shift = k - right_most
                     # the actual shift will be the maximum of this value and good_shift. Thus:
-                    actual_shift = max(good_shift, shift_maybe)
+                    actual_shift = max(good_shift, bad_shift)
                     comp_counter += actual_shift  # shift the pattern forward.
                     break  # now break out of the for loop no more comparison needed.
 
                 else:  # here the mismatched character ain't even in text man.
-                    actual_shift = max(good_shift, shift_maybe)  # so we just shift by max of the two.
+                    actual_shift = max(good_shift, 1)  # so we just shift by max of the two.
                     comp_counter += actual_shift
 
             else:  # in this case the characters actually match so all good
                 if loop_counter == pat_length:  # if the whole pattern matched
-                    # then we can shift the pattern forward by matched_prefix[1]
                     result += [k + comp_counter]  # put the index where full match ends into the result list
-                    # shift the pattern forward by pat_length - matched_prefix[1]
+                    # then we can shift the pattern forward by matched_prefix[1]
                     comp_counter += pat_length - matched_pre[1]
                 else:  # otherwise keep checking
-
                     loop_counter += 1
+
     return result, total_counter
 
 
