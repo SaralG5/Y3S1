@@ -6,6 +6,8 @@ it. This would at least give a direct matches if there are some. To find if some
 replaced I also ran the z_algorithm on the concatenation of reverse(pat) and reverse(txt) since this could also tell
 me if there are any more parts that match the pattern so long as I check the relevant indexes of this string.
 """
+import sys
+
 
 def z_algorithm(input_str):
     """
@@ -18,7 +20,7 @@ def z_algorithm(input_str):
     """
     # first initialise z list and l and r list
     str_size = len(input_str)
-    if str_size > 1: # if its bigger than one then we will do all the z_stuff
+    if str_size > 1:  # if its bigger than one then we will do all the z_stuff
         z_list = [None for k in range(str_size)]
         # with the l_list and r_list we will concatenate values to them as we do comparisons.
         # this is easier since we can easily get the most recent l box and r box values
@@ -108,6 +110,8 @@ def z_algorithm(input_str):
         r_list = [1]
 
     return z_list
+
+
 def dist_finder(txt, pat):
     pos_in_text = []
     norm_concat = pat + txt  # concatenate the two together
@@ -115,22 +119,24 @@ def dist_finder(txt, pat):
     str_length = len(norm_concat)
     txt_length = len(txt)
     pat_length = len(pat)
-    reverse_concat = reverse_string(pat) + reverse_string(txt) # reverse pat and txt and then concatenate them together
+    reverse_concat = reverse_string(pat) + reverse_string(txt)  # reverse pat and txt and then concatenate them together
     # now run z_algorithm on both the norm_concat and reverse_concat
     norm_z = z_algorithm(norm_concat)
     reverse_z = z_algorithm(reverse_concat)
 
-    for i in range(pat_length, str_length): # iterate through z values.
+    for i in range(pat_length, str_length):  # iterate through z values.
         if norm_z[i] >= 1:
             # check reverse_z list for any z_value at corresponding letter
             if reverse_z[txt_length - i + pat_length] + norm_z[i] >= pat_length:  # direct match
-                pos_in_text.append([i-pat_length, 0])
+                pos_in_text.append([i - pat_length, 0])
             elif reverse_z[txt_length - i + pat_length + 1] + norm_z[i] == pat_length - 1:  # insertion
-                pos_in_text.append([i-pat_length, 1])
-            elif reverse_z[txt_length - i + pat_length] + norm_z[i] == pat_length - 1: # deletion/substitution
+                pos_in_text.append([i - pat_length, 1])
+            elif reverse_z[txt_length - i + pat_length] + norm_z[i] == pat_length - 1:  # deletion/substitution
                 pos_in_text.append([i - pat_length, 1])
 
     return pos_in_text
+
+
 def reverse_string(string):
     """
     This function returns a string in reverse order.
@@ -140,18 +146,31 @@ def reverse_string(string):
     """
     result = ''
     n = len(string)
-    for k in range(n - 1, -1 , -1):
+    for k in range(n - 1, -1, -1):
         result += string[k]
     return result
 
 
-#print(reverse_string('abcd'))
-#print(dist_finder('zxycade', 'cab'))
-#print(dist_finder('abdyabxdcyabcdz', 'abcd'))
-#print(dist_finder('aecde', 'abcd'))
-#print(dist_finder('zxycade','cab'))
-#print(z_algorithm('aaba'))
-#print(dist_finder('abc', 'axcd'))
-#print(dist_finder('agcdefghi', 'ab'))
+def readFiles(textFileName, patFileName):
+    textFile = open(textFileName, 'r')
+    txt = textFile.read()
+    textFile.close()
+    patFile = open(patFileName, 'r')
+    pat = patFile.read()
+    patFile.close()
+    return txt, pat
 
 
+def writeOutput(occurrences):
+    output = open('output_editdist.txt', 'w')
+    for i in occurrences:
+        output.write(str(i[0]) + ' ' + str(i[1]) + '\n')
+    output.close()
+
+
+if __name__ == "__main__":
+    txtFileName = sys.argv[1]
+    patFileName = sys.argv[2]
+    txt, pat = readFiles(txtFileName, patFileName)
+    occurrences = dist_finder(txt, pat)
+    writeOutput(occurrences)

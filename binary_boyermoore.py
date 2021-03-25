@@ -11,6 +11,8 @@ indexes for most the array based stuff will look a little different to the lectu
 not to worry- though they look dodgy everything should hopefully line up well. In each function I will go more into depth
 with what it is actually doing and hopefully show the whole picture of how the algorithm works.
 """
+import sys
+
 
 def z_algorithm(input_str):
     """
@@ -23,7 +25,7 @@ def z_algorithm(input_str):
     """
     # first initialise z list and l and r list
     str_size = len(input_str)
-    if str_size > 1: # if its bigger than one then we will do all the z_stuff
+    if str_size > 1:  # if its bigger than one then we will do all the z_stuff
         z_list = [None for k in range(str_size)]
         # with the l_list and r_list we will concatenate values to them as we do comparisons.
         # this is easier since we can easily get the most recent l box and r box values
@@ -113,6 +115,8 @@ def z_algorithm(input_str):
         r_list = [1]
 
     return z_list
+
+
 def reverse_string(string):
     """
     This function returns a string in reverse order.
@@ -122,9 +126,11 @@ def reverse_string(string):
     """
     result = ''
     n = len(string)
-    for k in range(n - 1, -1 , -1):
+    for k in range(n - 1, -1, -1):
         result += string[k]
     return result
+
+
 def bad_char_processing(a_string):
     """
     @complexity_time: O(n) where n is the length of a_string
@@ -138,9 +144,9 @@ def bad_char_processing(a_string):
     a tuple containing the index of the character in a_string and the character itself. This position is checked
     whenever a character is being checked for its rightmost occurrences.
     """
-    bad_array = []   # array that will contain output
-    str_size = len(a_string)   # length of a_string
-    ascii_values = [None for j in range(256)]   # here create a list 256 long that can use ascii values when inserting
+    bad_array = []  # array that will contain output
+    str_size = len(a_string)  # length of a_string
+    ascii_values = [None for j in range(256)]  # here create a list 256 long that can use ascii values when inserting
     # values into it
     for i in range(str_size):  # loop through string checking each character.
         asc_value = ord(a_string[i])  # find ascii value of character being checked.
@@ -148,7 +154,7 @@ def bad_char_processing(a_string):
             bad_array += [[0]]
             ascii_values[asc_value] = (i, a_string[i])
 
-        elif ascii_values[asc_value] != None:   # if some character has already been seen
+        elif ascii_values[asc_value] != None:  # if some character has already been seen
             most_recent = ascii_values[asc_value]
             # now just add the new index to the list, since we know where the character is.
             bad_array[most_recent[0]] += [i]
@@ -158,7 +164,9 @@ def bad_char_processing(a_string):
             bad_array += [[i]]
             ascii_values[asc_value] = (i, a_string[i])
 
-    return (bad_array, ascii_values)
+    return bad_array, ascii_values
+
+
 def biggest_smaller(a_list, a_value):
     """
     @complexity_space: O(n) where n is the length of a_list
@@ -186,20 +194,21 @@ def biggest_smaller(a_list, a_value):
             elif a_list[left] < a_value:
                 return a_list[left]
 
-            else:
-                # this case is where a_value is in the list but we got to a point where right == left + 1
-                return a_value
+            else:  # if the first two cases above did not hold, that means that a_value is smaller than everything in
+                # the list . In this case it would make most sense to just output a value so we know this happens.
+                return -1
 
-        elif a_value > a_list[middle]:  # if middle element is smaller than the one we are looking for
+        elif a_value > a_list[middle]:
+            # if middle element is smaller than the one we are looking for
             left = middle  # set left to be the middle
 
         elif a_value < a_list[middle]:  # if the middle element is bigger than the one we are looking for
             right = middle  # set right to be the middle
 
-        else:
-            # this is the final case where we find the element
-            # output the value and index
-            return middle, a_value
+        else:  # here we actually found the element
+            return a_list[middle - 1]
+
+
 def list_reverse(a_list):
     """
     This function simply returns the elements of a list in reverse order.
@@ -209,9 +218,11 @@ def list_reverse(a_list):
     """
     final_list = []
     n = len(a_list)
-    for k in range(n -1, -1, -1):
+    for k in range(n - 1, -1, -1):
         final_list.append(a_list[k])
     return final_list
+
+
 def except_last(a_list):
     """
     @complexity_time and space: O(n) where n is the length of a_list.
@@ -223,6 +234,8 @@ def except_last(a_list):
     for k in range(n - 1):
         final_list.append(a_list[k])
     return final_list
+
+
 def z_suffix(a_string):
     """
     This function gives the Z suffix values of a string by pretty much as stated in the lectures; running the z_algorithm
@@ -241,6 +254,8 @@ def z_suffix(a_string):
     # This function returns the z_suffix values for a string
     # all we got to do is compute the z_values for the string reversed.
     return except_last(list_reverse(z_algorithm(reverse_string(a_string))))
+
+
 def good_suffix(a_string):
     """
     This function outputs the good_suffix values for a_string. It pretty much directly implements what was shown in
@@ -260,6 +275,8 @@ def good_suffix(a_string):
         j = m - z_suff[p]
         good_suff[j] = p + 1
     return good_suff
+
+
 def matched_prefix(a_string):
     """
     This function finds the matched prefix values of a_string. It contains two nested for loops and a bit of right to
@@ -280,7 +297,7 @@ def matched_prefix(a_string):
         while end + counter < str_size and a_string[end + counter] == a_string[start + counter]:
             matches += 1
             counter += 1
-        matched_prefix_list[end] = matches   # set index to be the number of matches
+        matched_prefix_list[end] = matches  # set index to be the number of matches
         if matched_prefix_list[end] < matched_prefix_list[end + 1]:
             # if the number of matches is less than previous iteration
             # set number of matches to the bigger one
@@ -289,6 +306,8 @@ def matched_prefix(a_string):
     # set first index to be the length of the string
     matched_prefix_list[0] = str_size
     return matched_prefix_list
+
+
 def good_suffix_shift(pat, k):
     """
     This function goes through the two cases of good suffix shifting where good_suff[k + 1] > 0 or good_suff[k + 1] = 0.
@@ -306,6 +325,8 @@ def good_suffix_shift(pat, k):
     else:
         shift = pat_length - matched_pre[k + 1]
     return shift
+
+
 def boyer_moore(txt, pat):
     """
     This function actually implements the Boyer Moore algorithm.
@@ -316,7 +337,7 @@ def boyer_moore(txt, pat):
     result = []
     # okay so we will first do the part for the bad character rule in the code.
     comp_counter = 0  # assign variable that will help to compare to all of txt. Stands for comparison counter
-    total_counter = 0 # variable for total number of comparisons made by algorithm
+    total_counter = 0  # variable for total number of comparisons made by algorithm
     total_comparisons = 0  # assign a variable to count the total number of comparisons
     # assign two values to be the lengths of the txt and the pattern
     txt_length = len(txt)
@@ -329,9 +350,10 @@ def boyer_moore(txt, pat):
     # Now also preprocess the string for the good suffix stuff
     matched_pre = matched_prefix(pat)
     while pat_length + comp_counter <= txt_length:  # start outer loop and begin comparisons
-        loop_counter = 1 # this checks if the for loop runs in its entirety.
+        loop_counter = 1  # this checks if the for loop runs in its entirety.
         for k in range(pat_length - 1, -1, -1):  # check from left to right for matching characters
             total_counter += 1  # increment the total count since a comparison is about to be made.
+
             if pat[k] != txt[k + comp_counter]:  # in this case the characters do not match
                 # good suffix:
                 good_shift = good_suffix_shift(pat, k)
@@ -339,7 +361,8 @@ def boyer_moore(txt, pat):
                 # if we cannot find it then default the shift to 1
                 # first find ascii value of the mismatched character
                 mismatch_asc = ord(txt[k])
-                if already_there[mismatch_asc] is not None:  # here the mismatched character is in text
+                if already_there[mismatch_asc] is not None:  # here the mismatched character is in pat
+
                     # now find the rightmost occurrence of this character
                     index_and_value = already_there[mismatch_asc]  # assign variable to hold the index and value
                     # of the mismatched character
@@ -350,6 +373,9 @@ def boyer_moore(txt, pat):
                     # so now we got the right most occurrence of the mismatched character yee yee.
                     # Now we will assign a variable to the amount we got to shift by
                     bad_shift = k - right_most
+                    if right_most == -1:  # here we shift by the pattern length
+                        #   very edge case, don't think it even happens.
+                        bad_shift = pat_length
                     # the actual shift will be the maximum of this value and good_shift. Thus:
                     actual_shift = max(good_shift, bad_shift)
                     comp_counter += actual_shift  # shift the pattern forward.
@@ -358,6 +384,8 @@ def boyer_moore(txt, pat):
                 else:  # here the mismatched character ain't even in text man.
                     actual_shift = max(good_shift, 1)  # so we just shift by max of the two.
                     comp_counter += actual_shift
+                    if k + comp_counter >= txt_length:  # if the suggested shift is too far then stop.
+                        break
 
             else:  # in this case the characters actually match so all good
                 if loop_counter == pat_length:  # if the whole pattern matched
@@ -370,9 +398,30 @@ def boyer_moore(txt, pat):
     return result, total_counter
 
 
-def get_text(a_file):
-    with open(a_file, 'r') as file:
-        content = file.readlines()
-    return content[0]
+def readFiles(textFileName, patFileName):
+    textFile = open(textFileName, 'r')
+    txt = textFile.read()
+    textFile.close()
+    patFile = open(patFileName, 'r')
+    pat = patFile.read()
+    patFile.close()
+    return txt, pat
 
-print(boyer_moore('01010101010', '01'))
+
+def writeOutput(occurrences):
+    output = open('output_binary_boyermoore.txt', 'w')
+    for i in occurrences:
+        output.write(str(i) + '\n')
+    output.close()
+
+
+
+if __name__ == "__main__":
+    txtFileName = sys.argv[1]
+    patFileName = sys.argv[2]
+    txt, pat = readFiles(txtFileName, patFileName)
+    boyer_output = boyer_moore(txt, pat)
+    occurrences, comparisons = boyer_output[0], boyer_output[1]
+    writeOutput(occurrences)
+    print(comparisons)
+
