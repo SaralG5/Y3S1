@@ -2,7 +2,7 @@
 Saral 30618428: Binary Boyer Moore
 Here I just want to give a quick overview of what the code is actually doing. The main idea is pretty much exactly what
 was given in the lectures. Just right to left comparison and shift if we mismatch. The shift will depend on the larger
-of the good suffix and bad character rules. To make the bad suffix array, instead of using an n x n table like thing
+of the good suffix and bad character rules. To make the bad suffix array, instead of using an n x n table like object
 shown in the lectures, I still used an array but without all the unnecessary 0's. If I ever needed to find the rightmost
 occurrence of the mismatched letter,  I binary searched the bad character array for the largest number smaller than
 where I am currently comparing. To implement the good suffix rule I used the pseudo code shown in the lectures.
@@ -353,7 +353,6 @@ def boyer_moore(txt, pat):
         loop_counter = 1  # this checks if the for loop runs in its entirety.
         for k in range(pat_length - 1, -1, -1):  # check from left to right for matching characters
             total_counter += 1  # increment the total count since a comparison is about to be made.
-
             if pat[k] != txt[k + comp_counter]:  # in this case the characters do not match
                 # good suffix:
                 good_shift = good_suffix_shift(pat, k)
@@ -373,21 +372,24 @@ def boyer_moore(txt, pat):
                     # so now we got the right most occurrence of the mismatched character yee yee.
                     # Now we will assign a variable to the amount we got to shift by
                     bad_shift = k - right_most
-                    if right_most == -1:  # here we shift by the pattern length
+                    if right_most == -1:  # here we shift by 1. Here k is smaller than or equal to all the rightmost
+                        # occurrences
                         #   very edge case, don't think it even happens.
-                        bad_shift = pat_length
+                        bad_shift = 1
                     # the actual shift will be the maximum of this value and good_shift. Thus:
                     actual_shift = max(good_shift, bad_shift)
                     comp_counter += actual_shift  # shift the pattern forward.
                     break  # now break out of the for loop no more comparison needed.
 
                 else:  # here the mismatched character ain't even in text man.
-                    actual_shift = max(good_shift, 1)  # so we just shift by max of the two.
+                    actual_shift = max(good_shift, pat_length)  # so we just shift by max of the two.
                     comp_counter += actual_shift
                     if k + comp_counter >= txt_length:  # if the suggested shift is too far then stop.
                         break
 
+
             else:  # in this case the characters actually match so all good
+
                 if loop_counter == pat_length:  # if the whole pattern matched
                     result += [k + comp_counter]  # put the index where full match ends into the result list
                     # then we can shift the pattern forward by matched_prefix[1]
@@ -424,4 +426,3 @@ if __name__ == "__main__":
     occurrences, comparisons = boyer_output[0], boyer_output[1]
     writeOutput(occurrences)
     print(comparisons)
-

@@ -113,6 +113,14 @@ def z_algorithm(input_str):
 
 
 def dist_finder(txt, pat):
+    """
+    This function runs the z_algorithm twice to find the overall edit distance and also sees if there are any full
+    matches.
+    :param txt: a string to be matched with a pattern
+    :param pat: another string representing the pattern used for matching
+    :return: A nested array that contains the positions that have an edit distance less than or equal to one
+    and the edit distance.
+    """
     pos_in_text = []
     norm_concat = pat + txt  # concatenate the two together
     # assign three values for important lengths
@@ -131,10 +139,21 @@ def dist_finder(txt, pat):
                 pos_in_text.append([i - pat_length, 0])
             elif reverse_z[txt_length - i + pat_length + 1] + norm_z[i] == pat_length - 1:  # insertion
                 pos_in_text.append([i - pat_length, 1])
+            elif reverse_z[txt_length - i + pat_length - 1] + norm_z[i] == pat_length:  # insertion
+                pos_in_text.append([i - pat_length, 1])
             elif reverse_z[txt_length - i + pat_length] + norm_z[i] == pat_length - 1:  # deletion/substitution
                 pos_in_text.append([i - pat_length, 1])
+        if reverse_z[i] == pat_length - 1: # bit of an edge case here
+            # happens if first character only matches something.
+            # so we check the reverse list as well
+            if txt_length - (i - pat_length) > 3: # means you can both insert and replace for an edit dist of one:
+                pos_in_text.append([txt_length - (i - pat_length) - 2, 1])
+                pos_in_text.append([txt_length - (i - pat_length) - 3,1])
+
+
 
     return pos_in_text
+
 
 
 def reverse_string(string):
@@ -166,6 +185,7 @@ def writeOutput(occurrences):
     for i in occurrences:
         output.write(str(i[0]) + ' ' + str(i[1]) + '\n')
     output.close()
+
 
 
 if __name__ == "__main__":
