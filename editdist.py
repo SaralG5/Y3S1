@@ -1,5 +1,5 @@
 """
-Saral 30618428: Edit Distance
+Saral Gautam 30618428: Edit Distance
 Here I wanted to explain the main idea behind how I am actually calculating the edit distances, since it may not be clear
 from the code. To find the edit distance I concatenated the pattern and the string together and ran the z_algorithm on
 it. This would at least give a direct matches if there are some. To find if something needed to be deleted/substituted/
@@ -149,9 +149,6 @@ def dist_finder(txt, pat):
             if txt_length - (i - pat_length) > 3: # means you can both insert and replace for an edit dist of one:
                 pos_in_text.append([txt_length - (i - pat_length) - 2, 1])
                 pos_in_text.append([txt_length - (i - pat_length) - 3,1])
-
-
-
     return pos_in_text
 
 

@@ -1,5 +1,5 @@
 """
-Saral 30618428: Binary Boyer Moore
+Saral Gautam 30618428: Binary Boyer Moore
 Here I just want to give a quick overview of what the code is actually doing. The main idea is pretty much exactly what
 was given in the lectures. Just right to left comparison and shift if we mismatch. The shift will depend on the larger
 of the good suffix and bad character rules. To make the bad suffix array, instead of using an n x n table like object
@@ -359,9 +359,8 @@ def boyer_moore(txt, pat):
                 # now we have to find the rightmost occurrence of the mismatched character in text, within pattern
                 # if we cannot find it then default the shift to 1
                 # first find ascii value of the mismatched character
-                mismatch_asc = ord(txt[k])
+                mismatch_asc = ord(txt[k + comp_counter])
                 if already_there[mismatch_asc] is not None:  # here the mismatched character is in pat
-
                     # now find the rightmost occurrence of this character
                     index_and_value = already_there[mismatch_asc]  # assign variable to hold the index and value
                     # of the mismatched character
@@ -374,7 +373,7 @@ def boyer_moore(txt, pat):
                     bad_shift = k - right_most
                     if right_most == -1:  # here we shift by 1. Here k is smaller than or equal to all the rightmost
                         # occurrences
-                        #   very edge case, don't think it even happens.
+                        #   very edge case, occasionally happens.
                         bad_shift = 1
                     # the actual shift will be the maximum of this value and good_shift. Thus:
                     actual_shift = max(good_shift, bad_shift)
@@ -387,9 +386,7 @@ def boyer_moore(txt, pat):
                     if k + comp_counter >= txt_length:  # if the suggested shift is too far then stop.
                         break
 
-
             else:  # in this case the characters actually match so all good
-
                 if loop_counter == pat_length:  # if the whole pattern matched
                     result += [k + comp_counter]  # put the index where full match ends into the result list
                     # then we can shift the pattern forward by matched_prefix[1]
