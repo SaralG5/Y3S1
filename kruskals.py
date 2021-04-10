@@ -150,7 +150,7 @@ class DisjointSet:
         else:  # here the height of the two trees are equal
             self.vertex_parent[self.find(u)][1] = root_v
             self.vertex_parent[v][1] = -(height_u + 1)
-# churandy
+# churandy burandy
 def kruskal_algorithm(graph):
     # graph is formatted like [[u,v,w]. [u,v,w] ...]
     # first sort the graph by the edge weights.
