@@ -139,8 +139,8 @@ class DisjointSet:
         root_v = self.find(v)
         if root_u == root_v:   # u and v already in same tree se we don't need to worry.
             return
-        height_u = -root_u
-        height_v = -root_v
+        height_u = -(self.vertex_parent[self.find(u)][1] )
+        height_v = -( self.vertex_parent[self.find(v)][1])
         if height_u > height_v: # the height of the 'u' tree is bigger
             # here we set the parent of v to be u
             self.vertex_parent[v][1] = root_u
@@ -148,7 +148,7 @@ class DisjointSet:
             # here we set the parent of u to be v.
             self.vertex_parent[u][1] = root_v
         else:  # here the height of the two trees are equal
-            self.vertex_parent[u][1] = root_v
+            self.vertex_parent[self.find(u)][1] = root_v
             self.vertex_parent[v][1] = -(height_u + 1)
 # churandy
 def kruskal_algorithm(graph):
@@ -184,7 +184,7 @@ test_graph = [[0,1,5],[1,2,4],[2,3,2],[3,4,10],[4,5,6],[5,0,1], [0,6,8],[1,6,2],
 print(kruskal_algorithm(test_graph))
 #a = DisjointSet(7)
 #a.union(5,6)
-#print(a.find(5))
+#rint(a.find(6))
 #print(a.vertex_parent)
 
 
