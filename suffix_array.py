@@ -1,176 +1,97 @@
-# first do naive implementation of Ukkonen
+def is_prefix(a_string, first_tup, second_tup):
+    """
+    This function checks if the string represented by first_tup is a prefix of the string represented by second_tup
+    or if second_tup is a prefix of first_tup
+    :param a_string: a string
+    :param first_tup: a tuple/list representing the starting an ending indexes of a sub string of a_string
+    :param second_tup: another tuple/list representing the starting and ending indexes of a sub string of a_string
+    :return: (Bool, index of match or mismatch)
+    @complexity_time: O(n) where n is the length of a_string
+    """
 
-def is_prefix(a_string, another_string):
-    # checks if a_string is a prefix of another_string
-    another_string_length = len(another_string)
-    a_string_length = len(a_string)
-    a_string_counter = 0
-    another_string_counter = 0
-    if a_string_length > another_string_length:
-       return False, -1
-    elif a_string_length < another_string_length:
-        for k in range(a_string_length):
-            if a_string[k] == another_string[k]:
-                pass
-            else:
-                return False, k
-        return True, -1
-    else:
-        for k in range(a_string_length):
-            if a_string[k] == another_string[k]:
-                pass
-            else:
-                return False, k
-        return True, -1
-
-
-    #
-    # if a_string_length > another_string_length:  # you cant hope to be a prefix mate in this case.
-    #     return False, -1
-    # elif another_string_length == a_string_length:
-    #     for k in range(another_string_length):
-    #         if a_string[k] == another_string[k]:
-    #             pass
-    #         else:
-    #             return False, k
-    #     return True, -1
-    # else:
-    #     for k in range(a_string_length):
-    #         if a_string[k] == another_string[k]:
-    #             pass
-    #         else:
-    #             return False, k
-    #     return True, -1
-
-
-class TreeNode:
-    def __init__(self):
-        self.has_edges = False
-        self.edges = []  # The strings along the edges.
-        self.has_links = False
-        self.links = []  # links to other nodes
-
-
-def part_string(start, end, a_string):
-    output_str = ''
-    for k in range(start, end + 1):
-        output_str += a_string[k]
-    return output_str
+    size_first_tup = abs(first_tup[0] - first_tup[1]) + 1  # create variable representing size of string for first_tup
+    #size_second_tup = second_tup[0] + second_tup[1] + 1  # create variable for size of string representing second_tup.
+    start_first = first_tup[0]  # get the starting index of the first tuple.
+    start_second = second_tup[0]  # get the starting index of the second tuple.
+    counter = 0
+    #if first_tup <= second_tup:
+    while counter < size_first_tup:
+        if a_string[start_first + counter] != a_string[start_second + counter]:
+            return False, start_first + counter
+        counter += 1
+    return True, start_second + counter
 
 
 class SuffixTree:
     def __init__(self, a_string):
-        self.input_string = a_string
-        self.root = TreeNode()
-
-    def insert(self, a_node, a_string):
-        a_node.edges.append(a_string)
-        return
+        self.input_string = a_string  # the input string
+        self.root_list = []   # this list will act as the root node for the suffix tree
+        for k in range(122):  # 122 because the assignment specs say that 122 is the highest ascii value
+            self.root_list.append([])  # append an empty list
+            # each empty list will act as a branch from the root node
 
     def ukkonen(self):
-        # first find length of the string
-        size_string = len(self.input_string)
-        for k in range(size_string):
-            for j in range(k + 1):
-                current_suffix = part_string(j, k, self.input_string)  # get the string for the current extension.
-                if not self.root.has_edges:  # check if there are edges from root
-                    self.root.edges.append([current_suffix, False])
-                    # if not then put current string in root edges list
-                    # the false means that there is no node in that edge.
-                    self.root.has_edges = True  # Now the root has edges.
-
-                else:  # if the root node does have edges
-                    no_edges = len(self.root.edges)
-                    rule_two_root = True
-                  
-                    # then check if the current string is a prefix of any suffixes in the root edge list
-                    for i in range(no_edges):
-
-                        edge_string = self.root.edges[i][0]
-                        rule_one_check = is_prefix(edge_string, current_suffix)
-                        rule_two_check = is_prefix(current_suffix, edge_string)
-                        if rule_one_check[0]:
-                            # since we are building the tree we check if
-                            # the current edges are prefixes of the string at a given suffix extension for rule 1
-                            # if this case is true we apply rule 1 and extend the edge by the last character
-                            # Since we are at a 'leaf'
-                            edge_string += current_suffix[-1]
-                            self.root.edges[i][0] = edge_string  # add the last character of string to edge.
-                            rule_two_root = False
+        global_end = 0  # initialise global end.
+        last_j = 0      # initialise last_j which is the last place that you did a rule 2/1.
+        phase = 0      # initialise phase.
+        extension = 0   # initialise extension.
+        size_string = len(self.input_string)  # the length of the input string.
+        while phase < size_string:  # while the phases are less than the string length.
+            extension = 0
+            while extension <= phase:  # while the extensions are less then the phases.
+                # the string we have to compare to root node branches is: str[extension: phase].
+                # this can be represented as two integers [extension,phase].
+                # So firstly we have to check if the root node list even has stuff in it.
+                current_string = [extension, phase]  # get the current string for that extension and phase.
+                # now find the ascii value of the first character in current string.
+                asc_value = ord(self.input_string[extension])
+                # Now check if the root list has anything at this ascii value
+                if not self.root_list[asc_value]: # if there is nothing there
+                    self.root_list[asc_value].append(extension) # append the index of the current letter
+                    extension += 1
+                else:  # Otherwise if we have an edge.
+                    # (i.e there is an integer in the list there at the index of the ascii value)
+                    # Then we have to see if we have a rule 1, 2 or 3 situation
+                    extension = last_j + 1 # In general the comparisons will start from last_j onwards
+                    asc_value = ord(self.input_string[extension])
+                    if not self.root_list[asc_value]:  # if there is nothing there
+                        self.root_list[asc_value].append(extension)  # append the index of the current letter
+                        # increment global_end, extension and last_j
+                        extension += 1
+                        last_j += 1
+                    else: # if there is an edge
+                        current_string = [extension, phase]  # get current string of extension and phase
+                        edge_string = [self.root_list[asc_value][0], global_end] # get string on edge
+                        # check if current string is a prefix of whats on the edge
+                        is_a_prefix = is_prefix(self.input_string, current_string, edge_string)
+                        # if it is a prefix then we have a rule 3 situation
+                        if is_a_prefix[0]:   # if it is a prefix
+                            # then we can stop this phase
                             break
-                        elif rule_two_check[0]:  # Rule 3
-                            rule_two_root = False
-                            break  # do nothing
-                        else:
-                            # Rule 2 Extension
+                        else: # if not then it will be a rule 2 situation
+                            # in rule 2's we have to deal with suffix links and all that jazz
+                            # first find which letter did not match
+                            mismatch_index = is_a_prefix[1]
+                            # Now create a new node a in the root list for current letter that contains the current
+                            # string. Append a tuple that represents this node in spirit
+                            # now we have to go to every other string and add a node for it
+                            for i in range(extension, global_end + 1):
+                                # go to each index of the starting letter
+                                index_letter = ord(self.input_string[i])
+                                    # add to the root list
+                                self.root_list[index_letter].append(i)
+                            last_j = global_end  # reset last_j value
+                            break   # can go straight to the next phase after this
+            global_end += 1
+            phase += 1
+        return self.root_list
 
-                            mismatch_index = rule_two_check[1]
-                            if mismatch_index >= 1:
-                                # # we can either have a node at the point of mismatch or not
 
-                                mismatched_char = part_string(mismatch_index, len(current_suffix) -1, current_suffix)
-                                print(mismatch_index, mismatched_char)
-                                if type(self.root.edges[i][1]) == TreeNode:  # alternative case not root Rule 2
-
-                                    already_node = self.root.edges[i][1]
-
-                                    # check if this node has any edges
-                                    if not already_node.has_edges:  # if there are no edges
-
-                                        # then add the mismatched character
-                                        already_node.edges.append([mismatched_char, False])
-                                        already_node.has_edges = True
-                                        self.root.edges[i][1] = already_node
-                                    else:  # if there are edges
-                                        # then we have to check which one to add to
-                                        
-                                        amount_char = len(already_node.edges)
-                                        added = False
-                                        for j in range(amount_char):
-                                            already_string = already_node.edges[j][0]
-                                            if is_prefix(already_string, mismatched_char)[0]:
-
-                                                already_string += mismatched_char[-1]
-                                                already_node.edges[j][0] = already_string
-                                                added = True
-                                                self.root.edges[i][1] = already_node
-
-                                        if not added:  # means mismatched char is not in nodes edges
-
-                                            already_node.edges.append([mismatched_char, False])
-                                            self.root.edges[i][1] = already_node
-
-                                else:  # rule 2 have to add node and a leaf
-                                    # add a node
-                                    new_node = TreeNode()
-                                    new_node.edges.append([mismatched_char, False])
-                                    new_node.has_edges = True
-                                    self.root.edges[i][1] = new_node
-                                rule_two_root = False
-                                break  # break out the for loop
-                    if rule_two_root:
-                        self.root.edges.append([current_suffix, False])
+a = SuffixTree('mississippi$')
+print(a.ukkonen())
 
 
 
 
+            # extension  = 0
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-a = SuffixTree('abacabad')
-a.ukkonen()
-print(a.root.edges)
-print(a.root.edges[0][1].edges)
