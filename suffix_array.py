@@ -88,25 +88,41 @@ class SuffixTree:
                     ranks.append(different_lets)
                     output_list.append(i)
                 different_lets += 1
-        return output_list
+        return output_list, ranks
 
     def suffix_array(self, id_list, rank_list):
         k = 1
-        jumps = 2 ** k
+        id_and_rank = []
         size_lists = len(id_list)
+        for i in range(size_lists):
+            id_and_rank.append([id_list[i], rank_list[i]])  # list for both ranks and id's
+        indexed = [0 for k in range(size_lists)]
+        for j in id_and_rank:
+            indexed[j[0]] = j
         temp = [0 for i in range(size_lists)]
-        counter = 0
-        while counter < size_lists - 1:
-            # compare each thing
-            if rank_list[counter] < rank_list[counter + 1]:
-                temp[id_list[counter + 1]] = rank_list[counter] + 1
-            else:
-                check_one = id_list[counter] + jumps
-                check_two = id_list[counter + 1] + jumps
-                if check_one >= size_lists:
-                    check_one = size_lists - 1
-                elif check_two >= size_lists:
-                    check_two = size_lists - 1
+        while k < size_lists:
+            new_indexed = [0 for i in range(size_lists)]
+            print(indexed, new_indexed)
+            counter = 0
+            # now iterate through the rank_list
+            while counter < size_lists - 1:
+                first_suf = indexed[counter]
+                second_suf = indexed[counter + 1]
+                if first_suf[1] < second_suf[1]:
+                    new_indexed[second_suf[0]] = [second_suf[0], first_suf[1] + 1]
+                    counter += 1 # do nothing in this case
+                else:
+                    rank_one = indexed[first_suf[0] + k][1]
+                    rank_two = indexed[second_suf[0] + k][1]
+                    if rank_one < rank_two:
+                        new_indexed[second_suf[0]] = [second_suf[0], first_suf[1] + 1]
+                    else:
+                        new_indexed[first_suf[0]] = [first_suf[0], second_suf[1] + 1]
+                    counter += 1
+            indexed = new_indexed
+            k *= 2
+        return indexed
+
 
 
 
@@ -114,6 +130,7 @@ class SuffixTree:
 
 
 a = SuffixTree('mississippi$')
-print(a.ukkonen())
+c = a.ukkonen()
+print(a.suffix_array(c[0], c[1]))
 
 # extension  = 0
