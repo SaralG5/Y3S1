@@ -21,6 +21,46 @@ def is_prefix(a_string, first_tup, second_tup):
         counter += 1
     return True, start_second + counter
 
+
+def id_rank(str_size, root_list):
+    # this function creates a list indexed by rank with the ID of each suffix.
+    output_list = [0 for i in range(str_size)]
+    different_lets = 0
+    for k in root_list:  # iterate through the edges of the root node.
+        if k:  # if there is an edge
+            for i in k:  # for each suffix on that edge
+                output_list[i] = [different_lets, i]  # put the rank and ID into the output list.
+                # indexed by the ID.
+            different_lets += 1
+    return output_list, str_size
+
+def suffix_array(a_list, str_size):
+    # this function takes an array with id's and ranks and returns the corresponding suffix array.
+    # take the string size an an input, since we already found it in ukkonen.
+    # so we have to iterate over a_list and see if any two ranks are the same etc
+    # we are also applying prefix doubling so we need another variable for that.
+    # a_list is already sorted on the first letter, since this is how the ukkonen was constructed.
+    # end of each iteration we make a new id_rank list that replaces old one and we keep iterating over it until
+    # the prefix doubling variable is bigger than the largest suffix in the list or there are no two same ranks
+    k = 1   # initialise k to one. This will be our prefix doubling variable
+    new_id_rank = [0 for i in range(str_size)]  # initialise list.
+    while k < str_size:
+        for j in range(str_size - 1):  # iterate through each suffix
+            current_suf = a_list[j]
+            next_suf = a_list[j + 1]
+            if current_suf[0] < next_suf[0]:  # if current suffix has a lower rank then adjacent suffix.
+                index_of_bigger = next_suf[1]  # the id of the larger rank suffix
+                rank_of_smaller = current_suf[0]    # the rank of the smaller suffix.
+                # then the higher rank suffix is set to the rank of the lower one + 1
+                new_id_rank[index_of_bigger] = [rank_of_smaller + 1, index_of_bigger]
+
+            elif current_suf[0] == next_suf[0]:  # if two ranks are the same.
+                # then we have to check the ranks of the suffixes with id, id + k
+                current_check = a_list[current_suf[1] + k][0]  # the rank of suffix id + k
+                next_check = a_list[next_suf[1] + k][0]  # the rank of another suffix id + k
+                # now check which is bigger or smaller.
+
+
 class SuffixTree:
     def __init__(self, a_string):
         self.input_string = a_string  # the input string
@@ -78,59 +118,13 @@ class SuffixTree:
                             break  # can go straight to the next phase after this
             global_end += 1
             phase += 1
-        # now iterate and make everything output friendly, Still O(n) yee yee
-        output_list = []
-        ranks = []
-        different_lets = 0
-        for k in self.root_list:
-            if k:
-                for i in k:
-                    ranks.append(different_lets)
-                    output_list.append(i)
-                different_lets += 1
-        return output_list, ranks
-
-    def suffix_array(self, id_list, rank_list):
-        k = 1
-        id_and_rank = []
-        size_lists = len(id_list)
-        for i in range(size_lists):
-            id_and_rank.append([id_list[i], rank_list[i]])  # list for both ranks and id's
-        indexed = [0 for k in range(size_lists)]
-        for j in id_and_rank:
-            indexed[j[0]] = j
-        temp = [0 for i in range(size_lists)]
-        while k < size_lists:
-            new_indexed = [0 for i in range(size_lists)]
-            print(indexed, new_indexed)
-            counter = 0
-            # now iterate through the rank_list
-            while counter < size_lists - 1:
-                first_suf = indexed[counter]
-                second_suf = indexed[counter + 1]
-                if first_suf[1] < second_suf[1]:
-                    new_indexed[second_suf[0]] = [second_suf[0], first_suf[1] + 1]
-                    counter += 1 # do nothing in this case
-                else:
-                    rank_one = indexed[first_suf[0] + k][1]
-                    rank_two = indexed[second_suf[0] + k][1]
-                    if rank_one < rank_two:
-                        new_indexed[second_suf[0]] = [second_suf[0], first_suf[1] + 1]
-                    else:
-                        new_indexed[first_suf[0]] = [first_suf[0], second_suf[1] + 1]
-                    counter += 1
-            indexed = new_indexed
-            k *= 2
-        return indexed
-
-
-
-
-
+        # So at this point we have all the information about the suffixes in the root list
+        # To construct the suffix array we need an array indexed by id that contains the rank of each suffix
+        # so we will construct this and then pass this into the suffix array function.
+        return id_rank(size_string, self.root_list)
 
 
 a = SuffixTree('mississippi$')
-c = a.ukkonen()
-print(a.suffix_array(c[0], c[1]))
+print(a.ukkonen())
 
 # extension  = 0
