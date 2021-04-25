@@ -25,16 +25,19 @@ def is_prefix(a_string, first_tup, second_tup):
 def id_rank(str_size, root_list):
     # this function creates a list indexed by rank with the ID of each suffix.
     output_list = [0 for i in range(str_size)]
+    sorted_on_rank = []
     different_lets = 0
     for k in root_list:  # iterate through the edges of the root node.
         if k:  # if there is an edge
             for i in k:  # for each suffix on that edge
+                sorted_on_rank.append([different_lets, i])  # put the rank and id into a list that is sorted on rank.
                 output_list[i] = [different_lets, i]  # put the rank and ID into the output list.
                 # indexed by the ID.
             different_lets += 1
-    return output_list, str_size
+    return str_size, sorted_on_rank, output_list
 
-def suffix_array(a_list, str_size):
+
+def suffix_array(str_size, sorted_on_rank, a_list):
     # this function takes an array with id's and ranks and returns the corresponding suffix array.
     # take the string size an an input, since we already found it in ukkonen.
     # so we have to iterate over a_list and see if any two ranks are the same etc
@@ -42,23 +45,60 @@ def suffix_array(a_list, str_size):
     # a_list is already sorted on the first letter, since this is how the ukkonen was constructed.
     # end of each iteration we make a new id_rank list that replaces old one and we keep iterating over it until
     # the prefix doubling variable is bigger than the largest suffix in the list or there are no two same ranks
-    k = 1   # initialise k to one. This will be our prefix doubling variable
-    new_id_rank = [0 for i in range(str_size)]  # initialise list.
+    k = 1  # initialise k to one. This will be our prefix doubling variable
     while k < str_size:
+        early_term = 1
+        new_sorted_rank = []
+        new_sorted_rank.append(sorted_on_rank[0])  # initialise first element
+        new_id_rank = [0 for i in range(str_size)]  # initialise list.
+        new_id_rank[sorted_on_rank[0][1]] = [sorted_on_rank[0][0], sorted_on_rank[0][1]]
         for j in range(str_size - 1):  # iterate through each suffix
-            current_suf = a_list[j]
-            next_suf = a_list[j + 1]
+            current_suf = sorted_on_rank[j]
+            next_suf = sorted_on_rank[j + 1]
             if current_suf[0] < next_suf[0]:  # if current suffix has a lower rank then adjacent suffix.
-                index_of_bigger = next_suf[1]  # the id of the larger rank suffix
-                rank_of_smaller = current_suf[0]    # the rank of the smaller suffix.
                 # then the higher rank suffix is set to the rank of the lower one + 1
-                new_id_rank[index_of_bigger] = [rank_of_smaller + 1, index_of_bigger]
+                index_of_bigger = next_suf[1]  # the id of the larger rank suffix
+                new_sorted_rank.append([new_sorted_rank[j][0] + 1, index_of_bigger])
+                new_id_rank[index_of_bigger] = [new_sorted_rank[-1][0] + 1, index_of_bigger]
+                early_term += 1
 
             elif current_suf[0] == next_suf[0]:  # if two ranks are the same.
                 # then we have to check the ranks of the suffixes with id, id + k
-                current_check = a_list[current_suf[1] + k][0]  # the rank of suffix id + k
-                next_check = a_list[next_suf[1] + k][0]  # the rank of another suffix id + k
-                # now check which is bigger or smaller.
+                try:
+                    current_check = a_list[current_suf[1] + k][0]  # the rank of suffix id + k
+                except IndexError:
+                    current_check = 0
+                try:
+                    next_check = a_list[next_suf[1] + k][0]  # the rank of another suffix id + k
+                except IndexError:
+                    next_check = 0
+
+                # now check which is bigger or smaller
+                if current_check < next_check:  # current_check < next_check:
+                    # same as previous case
+                    index_of_bigger = next_suf[1]
+                    new_sorted_rank.append([new_sorted_rank[-1][0] + 1, index_of_bigger])
+                    new_id_rank[index_of_bigger] = [new_sorted_rank[-1][0] + 1, index_of_bigger]
+
+                elif current_check == next_check:
+                    # if they are the same then keep iterating the tie will eventually break.
+                    # set the ranks to be the same
+                    new_id_rank[next_suf[1]] = next_suf
+                    new_sorted_rank.append([new_sorted_rank[-1][0], next_suf[1]])
+
+                # else:  # current check > next check
+                #     index_of_bigger = current_suf[1]
+                #     index_of_smaller = next_suf[1]
+                #     save_rank = new_sorted_rank[-1][0]
+                #     new_sorted_rank.pop()
+                #     new_sorted_rank.append([save_rank, index_of_smaller])
+                #     new_sorted_rank.append([new_sorted_rank[-1][0] + 1, index_of_bigger])
+                #     new_id_rank[index_of_smaller] = [save_rank, index_of_smaller]
+                #     new_id_rank[index_of_bigger] = [new_sorted_rank[-1][0] + 1,index_of_bigger]
+        sorted_on_rank = new_sorted_rank
+        a_list = new_id_rank
+        k *= 2  # double k
+    return sorted_on_rank
 
 
 class SuffixTree:
@@ -125,6 +165,72 @@ class SuffixTree:
 
 
 a = SuffixTree('mississippi$')
-print(a.ukkonen())
+b = a.ukkonen()
+print(suffix_array(b[0], b[1], b[2]))
 
 # extension  = 0
+
+# def suffix_array(str_size, sorted_on_rank, a_list):
+#     # this function takes an array with id's and ranks and returns the corresponding suffix array.
+#     # take the string size an an input, since we already found it in ukkonen.
+#     # so we have to iterate over a_list and see if any two ranks are the same etc
+#     # we are also applying prefix doubling so we need another variable for that.
+#     # a_list is already sorted on the first letter, since this is how the ukkonen was constructed.
+#     # end of each iteration we make a new id_rank list that replaces old one and we keep iterating over it until
+#     # the prefix doubling variable is bigger than the largest suffix in the list or there are no two same ranks
+#     k = 1  # initialise k to one. This will be our prefix doubling variable
+#     while k < str_size:
+#         early_term = 1
+#         new_sorted_rank = [0 for i in range(str_size)]
+#         new_sorted_rank[0] = sorted_on_rank[0]  # initialise first element
+#         new_id_rank = [0 for i in range(str_size)]  # initialise list.
+#         new_id_rank[sorted_on_rank[0][1]] = [sorted_on_rank[0][0], sorted_on_rank[0][1]]
+#         for j in range(str_size - 1):  # iterate through each suffix
+#             j= 0
+#             current_suf = sorted_on_rank[j]
+#             next_suf = sorted_on_rank[j + 1]
+#             if current_suf[0] < next_suf[0]:  # if current suffix has a lower rank then adjacent suffix.
+#                 index_of_bigger = next_suf[1]  # the id of the larger rank suffix
+#                 # then the higher rank suffix is set to the rank of the lower one + 1
+#                 new_sorted_rank[j + 1] = [new_sorted_rank[j][0] + 1, index_of_bigger]
+#                 # new_sorted_rank[rank_of_smaller + 1] = [rank_of_smaller + 1, next_suf[1]]
+#                 # set the rank sorted list to be the same
+#                 new_id_rank[index_of_bigger] = [new_sorted_rank[j][0] + 1, index_of_bigger]
+#                 early_term += 1
+#
+#
+#
+#             elif current_suf[0] == next_suf[0]:  # if two ranks are the same.
+#                 # then we have to check the ranks of the suffixes with id, id + k
+#                 current_check = a_list[current_suf[1] + k][0]  # the rank of suffix id + k
+#                 next_check = a_list[next_suf[1] + k][0]  # the rank of another suffix id + k
+#
+#                 # now check which is bigger or smaller.
+#                 if current_check == next_check:
+#                     # if they are the same then keep iterating the tie will eventually break.
+#                     # set the ranks to be the same
+#                     new_id_rank[next_suf[1]] = next_suf
+#                     new_sorted_rank[j + 1] = [new_sorted_rank[j][0], next_suf[1]]
+#
+#                 elif current_check < next_check:
+#                     # same as previous case
+#                     index_of_bigger = next_suf[1]  # the id of the larger rank suffix
+#                     # then the higher rank suffix is set to the rank of the lower one + 1
+#                     new_sorted_rank[j + 1] = [new_sorted_rank[j][0] + 1, index_of_bigger]
+#                     # new_sorted_rank[rank_of_smaller + 1] = [rank_of_smaller + 1, next_suf[1]]
+#                     # set the rank sorted list to be the same
+#                     new_id_rank[index_of_bigger] = [new_sorted_rank[j][0] + 1, index_of_bigger]
+#
+#                 else:  # current check > next check
+#                     index_of_bigger = current_suf[1]
+#                     index_of_smaller = next_suf[1]
+#                     new_sorted_rank[j] = [new_sorted_rank[j][0], index_of_smaller]
+#                     new_sorted_rank[j + 1] = [new_sorted_rank[j][0] + 1, index_of_bigger]
+#                     new_id_rank[index_of_smaller] = new_sorted_rank[j]
+#                     new_id_rank[index_of_bigger] = [new_sorted_rank[j][0] + 1,index_of_bigger]
+#
+#         sorted_on_rank = new_sorted_rank
+#         a_list = new_id_rank
+#         #print(a_list, sorted_on_rank)
+#         k *= 2  # double k
+#     return sorted_on_rank
