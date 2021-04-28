@@ -21,7 +21,6 @@ def is_prefix(a_string, first_tup, second_tup):
         counter += 1
     return True, start_first + counter, start_second + counter
 
-print(is_prefix('abcabcdse', [0,4], [1,3]))
 
 class SuffixTree:
     def __init__(self, a_string):
@@ -83,56 +82,109 @@ class SuffixTree:
         # So at this point we have all the information about the suffixes in the root list
         # To construct the suffix array we need an array indexed by id that contains the rank of each suffix
         # so we will construct this and then pass this into the suffix array function.
-        return self.root_list, global_end
+        return global_end - 1, self.root_list
+
+
+def mismatch_finder(a_string, pair_one, pair_two):
+    # get the smaller of the two
+    one_size = abs(pair_one[1] - pair_one[0]) + 1
+    two_size = abs(pair_two[1] - pair_two[0]) + 1
+    one_start = pair_one[0]
+    two_start = pair_two[0]
+    counter = 0
+    if one_size < two_size:
+        while counter < one_size:
+            if a_string[one_start + counter] != a_string[two_start + counter]:
+                return False, one_start + counter, two_start + counter
+            counter += 1
+        return True, 0, 1
+
+    elif one_size == two_size:
+        while counter < one_size:
+            if a_string[one_start + counter] != a_string[two_start + counter]:
+                return False, one_start + counter, two_start + counter
+            counter += 1
+        return True, 0, 0  # this case will never happened, just put a return there for safekeeping.
+
+    else:
+        while counter < two_size:
+            if a_string[one_start + counter] != a_string[two_start + counter]:
+                return False, one_start + counter, two_start + counter
+            counter += 1
+        return True, 1, 0
+
 
 class BinaryNode:
-    def __init__(self, a_string, suffix_id, end_value):
-        self.end = end_value
-        self.string = a_string
-        self.suffix_id = suffix_id  # set initial to be the lists first value
+    def __init__(self, suffix_id):
         self.left = None
         self.right = None
+        self.suffix_id = suffix_id
 
-    def insert(self, input_id):
-        # find the mismatch index for the suffix
-        mismatch = is_prefix(self.string, [self.suffix_id, self.end], [input_id, self.end])
-        # and there will be mismatches since rule 2's are mismatches.
-        # so everything mismatches at some point in the string.
-        node_letter = ord(mismatch[1])
-        insert_letter = ord(mismatch[2])
-        if node_letter < insert_letter:
-            self.right = BinaryNode(self.string, input_id, self.end)
+
+class BinaryTree:
+    def __init__(self, a_string, end):
+        self.root = None
+        self.input_string = a_string
+        self.end = end
+
+    def insert(self, suffix_id):
+        if self.root is None:
+            self.root = BinaryNode(suffix_id)
         else:
-            self.left = BinaryNode(self.string, input_id, self.end)
+            self._insert(suffix_id, self.root)
 
-    def tree(self):
-        # continuously insert into starting node.
+    def _insert(self, suffix_id, a_node):
+        mismatch = mismatch_finder(self.input_string, [a_node.suffix_id, self.end], [suffix_id, self.end])
+        node_letter = ord(self.input_string[mismatch[1]])
+        insert_letter = ord(self.input_string[mismatch[2]])
+        if mismatch[0]:
+            node_letter = mismatch[1]
+            insert_letter = mismatch[2]
+        if insert_letter < node_letter:
+            if a_node.left is not None:
+                self._insert(suffix_id, a_node.left)
+            else:
+                a_node.left = BinaryNode(suffix_id)
+        else:
+            if a_node.right is not None:
+                self._insert(suffix_id, a_node.right)
+            else:
+                a_node.right = BinaryNode(suffix_id)
+
+    def insert_many(self, suffix_id_list):
+        for k in suffix_id_list:
+            self.insert(k)
+
+    def retrieve(self):
+        if self.root is not None:
+            return self._retrieve(self.root)
+
+    def _retrieve(self, a_node):
+        if a_node is None:
+            return []
+        else:
+            return self._retrieve(a_node.left) + [a_node.suffix_id] + self._retrieve(a_node.right)
 
 
+def ukkonen_full(a_string):
+    initial = SuffixTree(a_string)
+    suffix_tree = initial.ukkonen()
+    end = suffix_tree[0]
+    edges = suffix_tree[1]
+    suffix_array = []
+    for i in edges:
+        if i:
+            binary = BinaryTree(a_string, end)
+            binary.insert_many(i)
+            suffix_array += binary.retrieve()
+    return [end + 1] + suffix_array
 
-
-
-a = SuffixTree('mississippi')
-print(a.ukkonen())
-# def is_prefix(a_string, first_tup, second_tup):
-#     """
-#     This function checks if the string represented by first_tup is a prefix of the string represented by second_tup
-#     or if second_tup is a prefix of first_tup
-#     :param a_string: a string
-#     :param first_tup: a tuple/list representing the starting an ending indexes of a sub string of a_string
-#     :param second_tup: another tuple/list representing the starting and ending indexes of a sub string of a_string
-#     :return: (Bool, index of match or mismatch)
-#     @complexity_time: O(n) where n is the length of a_string
-#     """
-#
-#     size_first_tup = abs(first_tup[0] - first_tup[1]) + 1  # create variable representing size of string for first_tup
-#     # size_second_tup = second_tup[0] + second_tup[1] + 1  # create variable for size of string representing second_tup.
-#     start_first = first_tup[0]  # get the starting index of the first tuple.
-#     start_second = second_tup[0]  # get the starting index of the second tuple.
-#     counter = 0
-#     # if first_tup <= second_tup:
-#     while counter < size_first_tup:
-#         if a_string[start_first + counter] != a_string[start_second + counter]:
-#             return False, start_first + counter
-#         counter += 1
-#     return True, start_second + counter
+print(ukkonen_full('mississippi'))
+#a = SuffixTree('mississippi')
+#print(a.ukkonen())
+# b = BinaryTree('mississippi', 10)
+# b.insert(1)
+# b.insert(4)
+# b.insert(7)
+# b.insert(10)
+# print(b.retrieve())
