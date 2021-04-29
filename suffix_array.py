@@ -54,22 +54,23 @@ class SuffixTree:
                     # Then we have to see if we have a rule 1, 2 or 3 situation
                     extension = last_j + 1  # In general the comparisons will start from last_j onwards
                     current_string = [extension, phase]  # get current string of extension and phase
-                    edge_string = [self.root_list[asc_value][0], global_end]  # get string on edge
-                    # check if current string is a prefix of whats on the edge
-                    is_a_prefix = is_prefix(self.input_string, current_string, edge_string)
-                    # if it is a prefix then we have a rule 3 situation
-                    if is_a_prefix[0]:  # if it is a prefix
-                        # then we can stop this phase
-                        break
-                    else:  # if not then it will be a rule 2 situation
-                        # in rule 2's we have to deal with suffix links and all that jazz
-                        for i in range(extension, global_end + 1):
-                            # go to each index of the starting letter
-                            index_letter = ord(self.input_string[i])
-                            # add to the root list
-                            self.root_list[index_letter].append(i)
-                        last_j = global_end  # reset last_j value
-                        break  # can go straight to the next phase after this
+                    for suffix_id in self.root_list[asc_value]:
+                        edge_string = [suffix_id, global_end]  # get string on edge
+                        # check if current string is a prefix of whats on the edge
+                        is_a_prefix = is_prefix(self.input_string, current_string, edge_string)
+                        # if it is a prefix then we have a rule 3 situation
+                        if is_a_prefix[0]:  # if it is a prefix
+                            # then we can stop this phase
+                            break
+                    # if not then it will be a rule 2 situation
+                    # in rule 2's we have to deal with suffix links and all that jazz
+                    for i in range(extension, global_end + 1):
+                        # go to each index of the starting letter
+                        index_letter = ord(self.input_string[i])
+                        # add to the root list
+                        self.root_list[index_letter].append(i)
+                    last_j = global_end  # reset last_j value
+                    break  # can go straight to the next phase after this
             global_end += 1
             phase += 1
         return global_end - 1, self.root_list
@@ -169,9 +170,10 @@ def ukkonen_full(a_string):
             suffix_array += binary.retrieve()
     return [end + 1] + suffix_array
 
-print(ukkonen_full('abcdabcbdab'))
-#a = SuffixTree('mississippi')
-#print(a.ukkonen())
+#print(b.ukkonen())
+#print(ukkonen_full('abcdacbdabdacbdabd'))
+# a = SuffixTree('mississippi')
+# print(a.ukkonen())
 # b = BinaryTree('mississippi', 10)
 # b.insert(1)
 # b.insert(4)
