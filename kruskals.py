@@ -1,3 +1,6 @@
+import sys
+
+
 def count_sort(num_list, b):
     """
     This function gives a list that contains the position of each element in the output list, when later used for radix sort.
@@ -150,7 +153,7 @@ class DisjointSet:
         else:  # here the height of the two trees are equal
             self.vertex_parent[self.find(u)][1] = root_v
             self.vertex_parent[v][1] = -(height_u + 1)
-# churandy burandy
+
 def kruskal_algorithm(graph):
     # graph is formatted like [[u,v,w]. [u,v,w] ...]
     # first sort the graph by the edge weights.
@@ -174,14 +177,42 @@ def kruskal_algorithm(graph):
         u = edge[0]
         v = edge[1]
         if union_find.find(u) != union_find.find(v):
-            print(u,v, union_find.vertex_parent, union_find.find(u), union_find.find(v))
+            #print(u,v, union_find.vertex_parent, union_find.find(u), union_find.find(v))
             union_find.union(u,v)
             output.append(edge)
-    return output
+    span = 0
+    for j in output:
+        span += j[2]
+    return span, output
+
+
+def readFiles(textFileName):
+    textFile = open(textFileName, 'r')
+    txt = textFile.read()
+    textFile.close()
+    return txt
+
+
+def writeOutput(occurrences):
+    output = open('output_binary_boyermoore.txt', 'w')
+    for i in occurrences:
+        output.write(str(i) + '\n')
+    output.close()
+
+
+
+# if __name__ == "__main__":
+#     #txtFileName = sys.argv[1]
+#     patFileName = sys.argv[2]
+#     pat = readFiles(patFileName)
+    # kruskal_output =
+    # occurrences, comparisons = boyer_output[0], boyer_output[1]
+    # writeOutput(occurrences)
+    # print(comparisons)
 
 #print(count_sort([10,12,3,4], 10))
-test_graph = [[0,1,5],[1,2,4],[2,3,2],[3,4,10],[4,5,6],[5,0,1], [0,6,8],[1,6,2],[2,6,1],[3,6,3], [4,6,7], [5,6,4]]
-print(kruskal_algorithm(test_graph))
+#test_graph = [[0,1,5],[1,2,4],[2,3,2],[3,4,10],[4,5,6],[5,0,1], [0,6,8],[1,6,2],[2,6,1],[3,6,3], [4,6,7], [5,6,4]]
+#print(kruskal_algorithm(test_graph))
 #a = DisjointSet(7)
 #a.union(5,6)
 #rint(a.find(6))

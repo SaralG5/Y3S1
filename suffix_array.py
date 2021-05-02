@@ -170,6 +170,9 @@ def ukkonen_full(a_string):
             suffix_array += binary.retrieve()
     return [end + 1] + suffix_array
 
+a = SuffixTree('abcdacbdabdacbdabc')
+print(a.ukkonen())
+#print(ukkonen_full('abcab'))
 #print(b.ukkonen())
 #print(ukkonen_full('abcdacbdabdacbdabd'))
 # a = SuffixTree('mississippi')
