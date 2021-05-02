@@ -21,10 +21,11 @@ def is_prefix(a_string, first_tup, second_tup):
         counter += 1
     return True, start_first + counter, start_second + counter
 
+
 class SuffixTree:
-    def __init__(self, a_string, b_string):
-        self.input_string = a_string + b_string # the input string
-        self.b_length = len(b_string)
+    def __init__(self, a_string):
+        self.input_string = a_string  # + b_string # the input string
+        # self.b_length = len(b_string)
         self.total_length = len(self.input_string)
         self.root_list = []  # this list will act as the root node for the suffix tree
         self.prefix = []
@@ -64,7 +65,7 @@ class SuffixTree:
                         is_a_prefix = is_prefix(self.input_string, current_string, edge_string)
                         # if it is a prefix then we have a rule 3
                         if is_a_prefix[0]:  # if it is a prefix
-                            #print(suffix_id, extension
+                            # print(suffix_id, extension
                             # then we can stop this phase
                             matched = True
                             break
@@ -83,6 +84,7 @@ class SuffixTree:
             global_end += 1
             phase += 1
         return global_end - 1, self.root_list
+
 
 def mismatch_finder(a_string, pair_one, pair_two):
     # get the smaller of the two
@@ -112,3 +114,122 @@ def mismatch_finder(a_string, pair_one, pair_two):
             counter += 1
         return True, 1, 0
 
+
+class BinaryNode:
+    def __init__(self, suffix_id):
+        self.left = None
+        self.right = None
+        self.suffix_id = suffix_id
+
+
+class BinaryTree:
+    def __init__(self, a_string, end):
+        self.root = None
+        self.input_string = a_string
+        self.end = end
+
+    def insert(self, suffix_id):
+        if self.root is None:
+            self.root = BinaryNode(suffix_id)
+        else:
+            self._insert(suffix_id, self.root)
+
+    def _insert(self, suffix_id, a_node):
+        mismatch = mismatch_finder(self.input_string, [a_node.suffix_id, self.end], [suffix_id, self.end])
+        node_letter = ord(self.input_string[mismatch[1]])
+        insert_letter = ord(self.input_string[mismatch[2]])
+        if mismatch[0]:
+            node_letter = mismatch[1]
+            insert_letter = mismatch[2]
+        if insert_letter < node_letter:
+            if a_node.left is not None:
+                self._insert(suffix_id, a_node.left)
+            else:
+                a_node.left = BinaryNode(suffix_id)
+        else:
+            if a_node.right is not None:
+                self._insert(suffix_id, a_node.right)
+            else:
+                a_node.right = BinaryNode(suffix_id)
+
+    def insert_many(self, suffix_id_list):
+        for k in suffix_id_list:
+            self.insert(k)
+
+    def retrieve(self):
+        if self.root is not None:
+            return self._retrieve(self.root)
+
+    def _retrieve(self, a_node):
+        if a_node is None:
+            return []
+        else:
+            return self._retrieve(a_node.left) + [a_node.suffix_id] + self._retrieve(a_node.right)
+
+
+def ukkonen_full(a_string):
+    initial = SuffixTree(a_string)
+    suffix_tree = initial.ukkonen()
+    end = suffix_tree[0]
+    edges = suffix_tree[1]
+    suffix_array = []
+    for i in edges:
+        if i:
+            binary = BinaryTree(a_string, end)
+            binary.insert_many(i)
+            suffix_array += binary.retrieve()
+    return [end + 1] + suffix_array  # end + 1
+
+
+# print(mismatch_finder('abcdacbdabdacbdabc', [3,17], [10,17]))
+def number_of_matches(a_string, pair_one, pair_two):
+    size = len(a_string)
+    counter = 0
+    bigger = max(pair_one[0], pair_two[0])
+    match_number = 0
+    while counter + bigger < size:
+        if a_string[pair_one[0] + counter] == a_string[pair_two[0] + counter]:
+            match_number += 1
+            counter += 1
+        else:
+            return match_number
+    return match_number
+
+
+def prefix_array(a_string, suffix_array):
+    # all we have to do is compare each sorted suffix with the one before it and insert into the prefix_array
+    size = len(suffix_array)
+    actual_length = size - 1
+    final_array = [0, 0]  # at least the terminal character will be here along with another string.
+    for k in range(2, size):  # get each suffix id.
+        final_array.append(
+            number_of_matches(a_string, [suffix_array[k - 1], actual_length], [suffix_array[k],
+                                                                               actual_length]))
+    return final_array
+
+
+suff_list = ukkonen_full('abcdacbdabdacbdabc')
+print(prefix_array('abcdacbdabdacbdabc', suff_list))
+
+
+def lcp(suffix_array, pref_array, str_one, str_two, pair):
+    size_string = len(str_one)
+    total_string = str_one + str_two
+    first = suffix_array.index(pair[0])
+    second = suffix_array.index(pair[0] + size_string)
+    if total_string[pair[0]] != total_string[pair[1] + size_string]:
+        return 0
+    else:
+        return max(pref_array[first], pref_array[second])
+
+
+def lcp_full(str_one, str_two, list_of_pairs):
+    total_string = str_one + str_two
+    suffix_array = ukkonen_full(total_string)
+    prefix_arr = prefix_array(total_string, suffix_array)
+    output = []
+    for k in list_of_pairs:
+        output.append(lcp(suffix_array, prefix_arr, str_one, str_two, k))
+    return output
+
+print(lcp_full('abcdacbdab', 'dacbdabc', [[3,0], [4,2], [0,5]]))
