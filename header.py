@@ -4,7 +4,7 @@ import csv
 import string
 
 
-# TASK 1
+# Radix Sort used in huffman making
 def count_sort(num_list, b):
     """
     This function gives a list that contains the position of each element in the output list, when later used for radix sort.
@@ -310,11 +310,6 @@ def huffman_code_maker(a_string):
             new_frequencies = [[concat, total_freq, new_tree]] + new_frequencies[2:]
             new_frequencies = radix_sort_list(new_frequencies, 10)
             new_freq_length = len(new_frequencies)
-            # new_node = HuffmanNode(concat)
-            # new_node.left = the_tree.root
-            # new_node.left_bit = '0'
-            # new_node.right = the_node
-            # new_node.right_bit = '1'
 
         else: # both are trees
             concat = first_element[0] + second_element[0]
@@ -328,7 +323,38 @@ def huffman_code_maker(a_string):
 
     return new_frequencies[0][2].retrieval()
 
-print(huffman_code_maker('A_DEAD_DAD_CEDED_A_BAD_BABE_A_BEADED_ABACA_BED'))
+#print(huffman_code_maker('A_DEAD_DAD_CEDED_A_BAD_BABE_A_BEADED_ABACA_BED'))
+
+def reverser(a_list):
+    new = []
+    while a_list != []:
+        new.append(a_list.pop())
+    return new
+
+def elias(an_integer):
+    integer_binary = bin(an_integer)[2:]
+    length_comp_size = len(integer_binary)
+    components = []
+    while length_comp_size > 1:
+        comp_string = bin(length_comp_size - 1)[2:]
+        length_comp_size = len(comp_string)
+        # OPTIMISATION POINT: the way the zero is assigned
+        comp_string = '0' + comp_string[1:]
+        components.append(comp_string)
+    in_order_comp = reverser(components)
+    in_order_comp.append(integer_binary)
+    output = ''.join(in_order_comp)
+    return output
+
+print(elias(561))
+
+
+
+
+
+        # OPTIMISATION POINT: probably can change the way a zero is assigned
+
+
 
 
 
