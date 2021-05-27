@@ -321,6 +321,9 @@ def huffman_code_maker(a_string):
             new_frequencies = radix_sort_list(new_frequencies, 10)
             new_freq_length = len(new_frequencies)
 
+    codes = new_frequencies[0][2].retrieval()
+
+
     return new_frequencies[0][2].retrieval()
 
 #print(huffman_code_maker('A_DEAD_DAD_CEDED_A_BAD_BABE_A_BEADED_ABACA_BED'))
@@ -346,13 +349,30 @@ def elias(an_integer):
     output = ''.join(in_order_comp)
     return output
 
-print(elias(561))
+# print(elias(99))
+# print(bin(99)[2:])
+
+def header_maker(a_string):
+    huffman = reverser(huffman_code_maker(a_string))
+    unique_char_amount = len(huffman)
+    unique_amount_elias = elias(unique_char_amount)
+    total_string = [unique_amount_elias]
+    for char in huffman:
+        letter = char[0]
+        letter_ascii = ord(letter)
+        seven_bit_ascii = bin(letter_ascii)[2:]
+        length_of_huffman = len(char[1])
+        len_in_elias = elias(length_of_huffman)
+        total_string.append(seven_bit_ascii)
+        total_string.append(len_in_elias)
+        total_string.append(char[1])
+    output = ''.join(total_string)
+    return output
+
+#print(reverser(huffman_code_maker('aacaacabcaba')))
+#print(header_maker('aacaacabcaba'))
 
 
-
-
-
-        # OPTIMISATION POINT: probably can change the way a zero is assigned
 
 
 
