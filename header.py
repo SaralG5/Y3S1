@@ -2,6 +2,7 @@ import random
 import timeit
 import csv
 import string
+import sys
 
 
 # Radix Sort used in huffman making
@@ -186,6 +187,7 @@ def radix_sort_list(double_list, b):
     return output
 
 
+# HUFFMAN stuff starts here
 class HuffmanNode:
     def __init__(self, a_string):
         self.left = None
@@ -272,7 +274,8 @@ def huffman_code_maker(a_string):
     first_two_letters = first_letter + second_letter
     first_two_frequency = first_letter_frequency + second_letter_frequency
     main_tree = HuffmanTree(first_two_letters, first_left_node, first_right_node)  # start the tree off
-    new_frequencies = [[first_two_letters, first_two_frequency, main_tree]] + frequencies[2:]  # make a new frequencies list
+    new_frequencies = [[first_two_letters, first_two_frequency, main_tree]] + frequencies[
+                                                                              2:]  # make a new frequencies list
     new_frequencies = radix_sort_list(new_frequencies, 10)  # sort the new frequencies
     # OPTIMISATION POINT: List slicing, maybe use a queue or something
     new_freq_length = len(new_frequencies)
@@ -311,28 +314,29 @@ def huffman_code_maker(a_string):
             new_frequencies = radix_sort_list(new_frequencies, 10)
             new_freq_length = len(new_frequencies)
 
-        else: # both are trees
+        else:  # both are trees
             concat = first_element[0] + second_element[0]
             total_freq = first_element[1] + second_element[1]
             smaller_tree = first_element[2]
             bigger_tree = second_element[2]
             bigger_tree.insert_tree(smaller_tree)
-            new_frequencies = [[concat, total_freq, bigger_tree ]] + new_frequencies[2:]
+            new_frequencies = [[concat, total_freq, bigger_tree]] + new_frequencies[2:]
             new_frequencies = radix_sort_list(new_frequencies, 10)
             new_freq_length = len(new_frequencies)
 
     codes = new_frequencies[0][2].retrieval()
 
-
     return new_frequencies[0][2].retrieval()
 
-#print(huffman_code_maker('A_DEAD_DAD_CEDED_A_BAD_BABE_A_BEADED_ABACA_BED'))
 
+# print(huffman_code_maker('A_DEAD_DAD_CEDED_A_BAD_BABE_A_BEADED_ABACA_BED'))
+# print(huffman_code_maker('abcdefghi'))
 def reverser(a_list):
     new = []
     while a_list != []:
         new.append(a_list.pop())
     return new
+
 
 def elias(an_integer):
     integer_binary = bin(an_integer)[2:]
@@ -349,11 +353,12 @@ def elias(an_integer):
     output = ''.join(in_order_comp)
     return output
 
-# print(elias(99))
+
+# print(elias(97))
 # print(bin(99)[2:])
 
 def header_maker(a_string):
-    huffman = reverser(huffman_code_maker(a_string))
+    huffman = huffman_code_maker(a_string)  # probably don't need reverser.
     unique_char_amount = len(huffman)
     unique_amount_elias = elias(unique_char_amount)
     total_string = [unique_amount_elias]
@@ -369,18 +374,30 @@ def header_maker(a_string):
     output = ''.join(total_string)
     return output
 
-#print(reverser(huffman_code_maker('aacaacabcaba')))
-#print(header_maker('aacaacabcaba'))
+#print(header_maker('abcdbaabeec'))
 
 
+# print(reverser(huffman_code_maker('aacaacabcaba')))
+#print(header_maker('aacaacabcababc'))
 
 
+def readFiles(textFileName):
+    a_list = []
+    textFile = open(textFileName, 'r')
+    for line in textFile:
+        a_list.append(line)
+    return ''.join(a_list)
 
 
+#print(readFiles('header.txt'))
+
+def writeOutput(occurrences):
+    header = open('output_header.txt', 'w')
+    header.write(str(occurrences))
+    header.close()
 
 
-
-
-
-
-
+if __name__ == "__main__":
+    argument = readFiles(sys.argv[1])
+    output = header_maker(argument)
+    writeOutput(output)

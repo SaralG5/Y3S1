@@ -1,3 +1,6 @@
+import sys
+
+
 def reverser(a_list):
     new = []
     while a_list != []:
@@ -138,11 +141,11 @@ def decode_data_part(a_string, huff_dictionary):
         else:  # Format 0 field
             # now need to get the offset and the length
             # whatever comes after the 0 is the elias encoding stuff
-            elias_first_part = actual_data_part[count + 1: ]
+            elias_first_part = actual_data_part[count + 1:]
             offset_info = decode_elias(elias_first_part)
             offset = offset_info[0]
             end_offset = offset_info[1]  # gives you the start of the next elias encoding.
-            elias_second_part = actual_data_part[count + end_offset + 1: ]
+            elias_second_part = actual_data_part[count + end_offset + 1:]
             length_match_info = decode_elias(elias_second_part)
             length_match = length_match_info[0]
             end_match = length_match_info[1]
@@ -165,3 +168,21 @@ def full_decoding(header_and_data):
     return data_decoded
 
 
+def readFiles(textFileName):
+    a_list = []
+    textFile = open(textFileName, 'r')
+    for line in textFile:
+        a_list.append(line)
+    return ''.join(a_list)
+
+
+def writeOutput(occurrences):
+    header = open('output_decoder_lzss.txt', 'w')
+    header.write(str(occurrences))
+    header.close()
+
+
+if __name__ == "__main__":
+    argument = readFiles(sys.argv[1])
+    output = full_decoding(argument)
+    writeOutput(output)
