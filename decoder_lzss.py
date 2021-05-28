@@ -130,11 +130,30 @@ def decode_data_part(a_string, huff_dictionary):
             while chunk not in huff_dictionary:
                 huff_count += 1
                 chunk = actual_data_part[start_code: start_code + huff_count]
+
             output_str.append(huff_dictionary[chunk])
             count += (huff_count + 1)  # increment count to the start of the next format field
 
+        # actual_data_part[count] was a 0 if we get here
         else:  # Format 0 field
-            pass
+            # now need to get the offset and the length
+            # whatever comes after the 0 is the elias encoding stuff
+            elias_first_part = actual_data_part[count + 1: ]
+            offset_info = decode_elias(elias_first_part)
+            offset = offset_info[0]
+            end_offset = offset_info[1]  # gives you the start of the next elias encoding.
+            elias_second_part = actual_data_part[count + end_offset + 1: ]
+            length_match_info = decode_elias(elias_second_part)
+            length_match = length_match_info[0]
+            end_match = length_match_info[1]
+            # now we append all the required stuff in output_str
+            match_counter = 0
+            starting_index = len(output_str) - offset
+            for i in range(length_match):
+                output_str.append(output_str[starting_index + match_counter])
+                match_counter += 1
+            count += (end_offset + end_match + 1)
+
     return ''.join(output_str)
 
 
@@ -143,9 +162,6 @@ def full_decoding(header_and_data):
     code_dict = header_info[0]
     data_text = header_info[1]
     data_decoded = decode_data_part(data_text, code_dict)
-    pass
-    # return data_decoded
+    return data_decoded
 
 
-# print(decode_data_part('00011111111010011000100100001101111', {}))
-# print(full_decoding('1110000110110'))
