@@ -72,25 +72,80 @@ def portion_header(a_string):
     times_check += end_elias
     # now we are at the start of the actual huffman code and the rest of the string is the huffman code.
     # which we now have the length and the starting position for
-    huffman_code = a_string[times_check: ]
+    huffman_code = a_string[times_check: times_check + huffman_code_length]
     times_check += huffman_code_length  # now we know how long everything was
     all_info = [actual_letter, huffman_code]
     return all_info, times_check
 
 
-print(portion_header('110000111'))
-print(portion_header('110001001000'))
-print(portion_header('110001101001'))
+#
+# print(portion_header('110000111'))
+# print(portion_header('110001001000'))
+# print(portion_header('110001101001'))
+
+def header_dictionary(huff_codes):
+    code_dict = {}
+    for k in huff_codes:
+        code_dict[k[1]] = k[0]
+    return code_dict
 
 
-def decode_header(a_string):
+def decode_header_part(a_string):
     initial = decode_elias(a_string)
     amount_unique = initial[0]
     huff_start = initial[1]
+    main_portion = a_string[huff_start:]
     # now we decode the actual information in the header.
     # first thing is the ascii value which is seven bits, so we know to read 7 bits from this point
+    full_codes = []
+    for j in range(amount_unique):  # for each unique character go through and get information
+        current_letter = portion_header(main_portion)
+        full_codes.append(current_letter[0])
+        main_portion = main_portion[current_letter[1]:]
+    # return main portion as well
+    return header_dictionary(full_codes), main_portion
 
-    return amount_unique, huff_start
+
+# print(decode_header_part('011110000111110001001000110001101001'))
 
 
-#print(decode_header('011110000111110001001000110001101001'))
+def decode_data_part(a_string, huff_dictionary):
+    output_str = []
+    # huff dictionary the key is the code and the value is the letter itself.
+    # first find the total number of fields
+    fields_start = decode_elias(a_string)
+    total_fields = fields_start[0]
+    data_start = fields_start[1]
+    actual_data_part = a_string[data_start:]
+    # now the data decoding begins using our dictionary.
+    # number of fields means the number of times we should see a 1 or a 0 in the format fields encoding stuff.
+    data_length = len(actual_data_part)
+    count = 0
+    while count < data_length:
+        if actual_data_part[count] == '1':  # Format 1 string
+            huff_count = 1
+            start_code = count + 1
+            # what comes after it has to be a huffman code so we will see it its in the dictionary
+            chunk = actual_data_part[start_code: start_code + huff_count]
+            while chunk not in huff_dictionary:
+                huff_count += 1
+                chunk = actual_data_part[start_code: start_code + huff_count]
+            output_str.append(huff_dictionary[chunk])
+            count += (huff_count + 1)  # increment count to the start of the next format field
+
+        else:  # Format 0 field
+            pass
+    return ''.join(output_str)
+
+
+def full_decoding(header_and_data):
+    header_info = decode_header_part(header_and_data)
+    code_dict = header_info[0]
+    data_text = header_info[1]
+    data_decoded = decode_data_part(data_text, code_dict)
+    pass
+    # return data_decoded
+
+
+# print(decode_data_part('00011111111010011000100100001101111', {}))
+# print(full_decoding('1110000110110'))
